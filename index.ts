@@ -1,6 +1,7 @@
 import express from "express"
 import cors from 'cors'
 import tasksRoutes from './routes/tasks.routes'
+import userRoutes from "./routes/users.routes"
 
 const app = express()
 
@@ -14,6 +15,7 @@ app.use((req, res, next) => {
 app.use(express.json())
 
 app.use('/tasks', tasksRoutes)
+app.use('/user', userRoutes)
 
 app.get('/', (req, res) => {
   res.status(200).json({message: 'rota criada'})
