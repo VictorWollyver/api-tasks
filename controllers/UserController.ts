@@ -15,7 +15,7 @@ export default class UsersController {
     const { name, email } = req.body;
     const { token, passwordEncripted: password } = res.locals
 
-    const user = new User({name, email, password})
+    const user = new User({name, email, password, tasks: []})
 
     user.createUser()
 
@@ -26,17 +26,6 @@ export default class UsersController {
     const { token } = res.locals
 
     res.status(200).json({ message: 'Login com sucesso', token })
-  }
-
-   static async checkUser(req: Request, res: Response) {
-    let currentUser 
-    const { token } = res.locals
-   
-    const tokenDecoded = jwt.verify(token, 'tokensecret')
-
-    currentUser = await User.getUserByName(tokenDecoded.name)
-
-    res.status(200).send(currentUser)
   }
 
 

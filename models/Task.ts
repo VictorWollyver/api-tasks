@@ -1,53 +1,73 @@
 import conn from '../db/conn'
 const database = conn.db('tasks')
 const tasks = database.collection('tasks')
+const users = database.collection('users')
+
+import User from './User'
 
 import { ObjectId } from 'mongodb'
 
 interface ITask {
-  title: string;
-  description: string; 
+  name: string;
+  description: string;
+  status: boolean;
+}
+interface IUser {
+  name: string;
+  password: string
+  email: string
+  tasks: ITask[]
 }
 
 class Task {
-  title: string;
+  name: string;
   description: string;
+  status: boolean
 
-  constructor({ title, description }: ITask) {
-    this.title = title
+  constructor({ name, description, status }: ITask) {
+    this.name = name
     this.description = description
+    this.status = status
   }
 
-  static getTasksAll() {
-    const listTasks = tasks.find({}).toArray()
-
-    return listTasks
+  getUserByToken(token: any) {
+    const user = users.findOne({ name: token })
+   
+    return user
   }
 
-  static getTasksById(id: ObjectId) {
-    const task = tasks.findOne({ _id: new ObjectId(id)})
+  async postTask(user: any) {
+    users.updateOne({ name: user.name }, {$set: {'tasks': [...user.tasks, this]}})
 
-    return task
+    return [...user.tasks, this]
   }
 
-  savePost() {
-    const task = tasks.insertOne({ title: this.title, description: this.description})
+  static deleteTaskByIndex(index: number, user: IUser) {
+    const tasksFilter = user.tasks.filter((element, indexElement) => {
+      return indexElement != index
+    })
 
-    return task
+    users.updateOne({ name: user.name }, {$set: {'tasks': tasksFilter}})
+
+    return tasksFilter
   }
 
-  static deleteOneTask(id: ObjectId) {
-    const deletedTask = tasks.deleteOne({_id: new ObjectId(id)})
+  static updateTaskByIndex(index: number, user: IUser) {
+    const taskToUpdate = user.tasks.find((element, indexElement) => {
+      return indexElement == index
+    })
 
-    return deletedTask
+    
+    if (taskToUpdate) {
+      taskToUpdate.status = true
+      user.tasks[index] = taskToUpdate
+      users.updateOne({ name: user.name}, {$set: {tasks: user.tasks}})
+    } 
+
+    return user.tasks
   }
-
-  updateOneTask(id: ObjectId) {
-    const updateTask = tasks.updateOne({_id: new ObjectId(id)}, {$set: this})
-
-    return updateTask
-  }
-
 }
+
+
 
 export default Task

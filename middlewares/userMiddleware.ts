@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 import conn from '../db/conn'
+import User from '../models/User'
 const database = conn.db('tasks')
 const users = database.collection('users')
 
@@ -35,7 +36,7 @@ export async function verifyIfPasswordIsCorrect(req: Request, res: Response, nex
   if(checkPassword) {
     return next()
   } else {
-    return res.json({ message: 'Senha incorreta'})
+    return res.status(400).json({ message: 'Senha incorreta'})
   }
 
 }
@@ -68,13 +69,29 @@ export async function generateToken(req: Request, res: Response, next: NextFunct
 
 export async function getToken(req: Request, res: Response, next: NextFunction) {
 
+
   if (req.headers.authorization) {
     const dirtyToken = req.headers.authorization
     const token = dirtyToken.split(' ')[1]
     res.locals.token = token
     return next()
     } else {
-      res.status(404).json({message: 'Token invalido'})
+      res.status(401).json({message: 'Token invalido'})
     }
 
 }
+
+ export async function checkUser(req: Request, res: Response, next: NextFunction) {
+    let currentUser 
+    const { token } = res.locals
+   
+    const tokenDecoded = jwt.verify(token, 'tokensecret')
+    if(typeof tokenDecoded != 'string') {
+      currentUser = await User.getUserByName(tokenDecoded.name) 
+      res.locals.user = currentUser
+      next()
+    } else {
+      return res.status(401).json({message: 'Token invalido'})
+    }
+
+  }

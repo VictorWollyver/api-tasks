@@ -8,7 +8,6 @@ userRoutes.post('/create', verifyIfNameAlreadyExists, verifyPassword, generateTo
 
 userRoutes.post('/login', verifyIfAccountExists, verifyPassword, verifyIfPasswordIsCorrect, generateToken, UsersController.loginUser)
 
-userRoutes.get('/checkuser', getToken, UsersController.checkUser)
 
 export default userRoutes
 

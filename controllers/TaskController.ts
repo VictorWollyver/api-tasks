@@ -1,50 +1,50 @@
 import Task from '../models/Task'
+import jwt from 'jsonwebtoken';
 
 import {Request, Response} from 'express'
 
 export default class TaskController {
- 
+
+  static async postTask(req: Request, res: Response) {
+    const { user } = res.locals
+
+    const { name, description } = req.body;
+
+    const task = new Task({ name, description, status: false });
+
+    const tasks = await task.postTask(user)
+
+    res.status(201).json(tasks);
+  }
+
   static async getTasks(req: Request, res: Response) {
+    const { user } = res.locals
 
-    const listTask = await Task.getTasksAll();
-
-    return res.status(200).json(listTask);
+    res.status(200).json(user.tasks);
   }
 
-  static async getTasksById(req: Request, res: Response) {
-    const { id } = req.body;
+  static async getTasksByIndex(req: Request, res: Response) {
+    const { user } = res.locals
 
-    const oneTask = await Task.getTasksById(id);
-
-    res.status(200).json(oneTask);
-    
+    res.status(200).json(user.tasks);
   }
 
-  static postTask(req: Request, res: Response) {
-    const { title, description } = req.body;
+  static async deleteTask(req: Request, res: Response) {
+    const { index } = req.params
+    const { user } = res.locals
 
-    const task = new Task({ title, description });
+    const taskFiltred = Task.deleteTaskByIndex(Number(index), user)
 
-    task.savePost();
-
-    res.status(201).send();
+    res.status(200).json(taskFiltred);
   }
 
-  static deleteTask(req: Request, res: Response) {
-    const { id } = req.body;
+   static async updateTask(req: Request, res: Response) {
+    const { index } = req.params
+    const { user } = res.locals
 
-    Task.deleteOneTask(id);
+    const tasksUpdated = Task.updateTaskByIndex(Number(index), user)
 
-    return res.status(201).json({ message: "Task Deletada" });
+    res.status(200).json(tasksUpdated);
   }
 
-  static updateTaskById(req: Request, res: Response) {
-    const { id, title, description } = req.body;
-
-    const task = new Task({title, description});
-
-    task.updateOneTask(id);
-
-    return res.status(200).json({ message: "atualizado com sucesso" });
-  }
 };
